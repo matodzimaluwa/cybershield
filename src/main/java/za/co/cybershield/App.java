@@ -2,7 +2,7 @@ package za.co.cybershield;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.Javalin;
-import io.javalin.http.Context;
+import io.javalin.http.UnauthorizedResponse;
 
 import java.util.Map;
 
@@ -13,7 +13,7 @@ public class App {
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "7070"));
         String staffKey = System.getenv().getOrDefault("CYBERSHIELD_STAFF_KEY", "dev-staff-key-change-me");
         String adminKey = System.getenv().getOrDefault("CYBERSHIELD_ADMIN_KEY", "dev-admin-key-change-me");
-        createServer(port, staffKey, adminKey, new SecurityMonitor(3)).start();
+        createServer(port, staffKey, adminKey, new SecurityMonitor(3)).start(port);
     }
 
     static Javalin createServer(int port, String staffKey, String adminKey, SecurityMonitor monitor) {
@@ -23,10 +23,12 @@ public class App {
         app.before("/api/*", ctx -> {
             String supplied = ctx.header("X-API-Key");
             if (supplied == null || !(constantTimeEquals(supplied, staffKey) || constantTimeEquals(supplied, adminKey))) {
-                ctx.status(401).json(Map.of("error", "Valid API key required"));
-                ctx.skipRemainingHandlers();
+                throw new UnauthorizedResponse("Valid API key required");
             }
         });
+
+        app.exception(UnauthorizedResponse.class, (e, ctx) ->
+                ctx.status(401).json(Map.of("error", e.getMessage())));
 
         app.post("/api/events", ctx -> {
             try {
