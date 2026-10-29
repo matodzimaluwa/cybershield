@@ -103,3 +103,5 @@ cybershield/
 ## Scope and limitations
 
 This is an educational demo using in-memory storage. Events and alerts disappear when the app restarts. It does not connect to real login systems, block IP addresses, or replace a production SIEM. Before production use, add persistent storage, TLS, key rotation, rate limiting, audit protections, and stronger operational controls.
+
+Verification code: WTC-FYV97YQR
